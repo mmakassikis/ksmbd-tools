@@ -23,6 +23,7 @@
 
 #include "ipc.h"
 #include "rpc.h"
+#include "sock_listener.h"
 #include "worker.h"
 #include "config_parser.h"
 #include "management/user.h"
@@ -283,6 +284,7 @@ static void worker_process_free(void)
 	 * values. User management should be destroyed last.
 	 */
 	spnego_destroy();
+	sock_listener_destroy();
 	ipc_destroy();
 	rpc_destroy();
 	wp_destroy();
@@ -396,12 +398,19 @@ static int worker_process_init(void)
 		goto out;
 	}
 
+	ret = sock_listener_init();
+	if (ret) {
+		pr_err("Failed to init sock listener subsystem\n");
+		goto out;
+	}
+
 	while (ksmbd_health_status & KSMBD_HEALTH_RUNNING) {
 		ret = ipc_process_event();
 		if (ret == -KSMBD_STATUS_IPC_FATAL_ERROR) {
 			ret = KSMBD_STATUS_IPC_FATAL_ERROR;
 			break;
 		}
+		sock_listener_process_event();
 	}
 out:
 	worker_process_free();
