@@ -239,7 +239,7 @@ int ipc_process_event(void)
 	int ret = 0;
 
 	ret = nl_recvmsgs_default(sk);
-	if (ret < 0) {
+	if (ret < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
 		pr_err("Recv() error %s [%d]\n", nl_geterror(ret), ret);
 		return -KSMBD_STATUS_IPC_FATAL_ERROR;
 	}
@@ -489,6 +489,11 @@ int ipc_init(void)
 
 	if (nl_connect(sk, NETLINK_GENERIC)) {
 		pr_err("Cannot connect to generic netlink.\n");
+		goto out_error;
+	}
+
+	if (nl_socket_set_nonblocking(sk) < 0) {
+		pr_err("Cannot set netlink socket nonblocking\n");
 		goto out_error;
 	}
 
