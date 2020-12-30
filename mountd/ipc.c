@@ -128,34 +128,14 @@ static int handle_unsupported_event(struct nl_cache_ops *unused,
 	return NL_SKIP;
 }
 
-static int ifc_list_size(void)
-{
-	int len = 0;
-	int i;
-
-	for (i = 0; global_conf.interfaces[i] != NULL; i++) {
-		char *ifc = global_conf.interfaces[i];
-
-		ifc = cp_ltrim(ifc);
-		if (!ifc)
-			continue;
-
-		len += strlen(ifc) + 1;
-	}
-	return len;
-}
-
 static int ipc_ksmbd_starting_up(void)
 {
 	struct ksmbd_startup_request *ev;
 	struct ksmbd_ipc_msg *msg;
-	int ifc_list_sz = 0;
 	int ret;
 
-	if (global_conf.bind_interfaces_only && global_conf.interfaces)
-		ifc_list_sz += ifc_list_size();
 
-	msg = ipc_msg_alloc(sizeof(*ev) + ifc_list_sz);
+	msg = ipc_msg_alloc(sizeof(*ev));
 	if (!msg)
 		return -ENOMEM;
 
@@ -199,30 +179,6 @@ static int ipc_ksmbd_starting_up(void)
 			global_conf.work_group,
 			sizeof(ev->work_group) - 1);
 	}
-
-#if 0
-	if (ifc_list_sz) {
-		int i;
-		int sz = 0;
-		char *config_payload = KSMBD_STARTUP_CONFIG_INTERFACES(ev);
-
-		ev->ifc_list_sz = ifc_list_sz;
-
-		for (i = 0; global_conf.interfaces[i] != NULL; i++) {
-			char *ifc = global_conf.interfaces[i];
-
-			ifc = cp_ltrim(ifc);
-			if (!ifc)
-				continue;
-
-			strcpy(config_payload + sz, ifc);
-			sz += strlen(ifc) + 1;
-		}
-
-		global_conf.bind_interfaces_only = 0;
-		cp_group_kv_list_free(global_conf.interfaces);
-	}
-#endif
 
 	ret = ipc_msg_send(msg);
 	ipc_msg_free(msg);
