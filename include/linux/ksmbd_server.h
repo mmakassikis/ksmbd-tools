@@ -23,7 +23,11 @@
 
 struct ksmbd_heartbeat {
 	__u32	handle;
-} ____ksmbd_align;
+};
+
+struct ksmbd_socket {
+	__u32	fd;
+};
 
 /*
  * Global config flags.
@@ -183,6 +187,8 @@ enum ksmbd_event {
 
 	KSMBD_EVENT_SPNEGO_AUTHEN_REQUEST,
 	KSMBD_EVENT_SPNEGO_AUTHEN_RESPONSE	= 15,
+
+	KSMBD_EVENT_CLIENT_SOCKET,
 
 	KSMBD_EVENT_MAX
 };
