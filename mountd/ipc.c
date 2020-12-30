@@ -200,6 +200,7 @@ static int ipc_ksmbd_starting_up(void)
 			sizeof(ev->work_group) - 1);
 	}
 
+#if 0
 	if (ifc_list_sz) {
 		int i;
 		int sz = 0;
@@ -221,6 +222,7 @@ static int ipc_ksmbd_starting_up(void)
 		global_conf.bind_interfaces_only = 0;
 		cp_group_kv_list_free(global_conf.interfaces);
 	}
+#endif
 
 	ret = ipc_msg_send(msg);
 	ipc_msg_free(msg);
